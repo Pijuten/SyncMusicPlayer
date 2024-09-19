@@ -1,44 +1,34 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-6" @click="hideContextMenu">
-    <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden">
+  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-6 overflow-hidden" @click="hideContextMenu">
+    <!-- File Browser (left column) -->
+    <div class="w-3/4 h-[500px] bg-white rounded-lg shadow-xl overflow-auto ml-6 max-h-[80vh]">
       <div class="p-6">
         <h1 class="text-3xl font-bold text-gray-900 mb-6">File Browser</h1>
-        
         <!-- Search Component -->
         <SearchComponent @search="handleSearch" />
-
         <!-- Breadcrumb -->
         <nav class="flex mb-6" aria-label="Breadcrumb">
           <ol class="inline-flex items-center space-x-1 md:space-x-3">
             <li v-for="(crumb, index) in breadcrumbs" :key="index" class="inline-flex items-center">
               <ChevronRightIcon v-if="index > 0" class="w-5 h-5 text-gray-400" />
-              <a 
-                href="#" 
-                @click.prevent="navigateTo(crumb.path)" 
+              <a href="#" @click.prevent="navigateTo(crumb.path)"
                 class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-gray-900"
-                :class="{ 'text-gray-500 hover:text-gray-700': index < breadcrumbs.length - 1 }"
-              >
+                :class="{ 'text-gray-500 hover:text-gray-700': index < breadcrumbs.length - 1 }">
                 {{ crumb.name }}
               </a>
             </li>
           </ol>
         </nav>
-
         <!-- File list -->
         <ul class="space-y-2">
-          <li 
-            v-for="item in filteredItems" 
-            :key="item.path"
-            @click="navigateTo(item.path)"
+          <li v-for="item in filteredItems" :key="item.path" @click="navigateTo(item.path)"
             @contextmenu.prevent="showContextMenu($event, item)"
-            class="flex items-center p-3 rounded-lg transition duration-150 ease-in-out hover:bg-gray-50 cursor-pointer"
-          >
+            class="flex items-center p-3 rounded-lg transition duration-150 ease-in-out hover:bg-gray-50 cursor-pointer">
             <FolderIcon v-if="item.type === 'folder'" class="w-6 h-6 text-blue-500 mr-3" />
             <FileIcon v-else class="w-6 h-6 text-gray-500 mr-3" />
             <span class="text-gray-700">{{ item.name }}</span>
           </li>
         </ul>
-
         <!-- Empty state -->
         <div v-if="filteredItems.length === 0" class="text-center py-12">
           <FolderOpenIcon class="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -49,15 +39,12 @@
         </div>
       </div>
     </div>
+    
+    <Playlist/>
 
     <!-- Custom Context Menu -->
-    <RightClickMenu
-      :visible="contextMenuVisible"
-      :position="contextMenuPosition"
-      :item="selectedItem"
-      :fullPath="selectedItemFullPath"
-      @menuOptionSelected="handleMenuOption"
-    />
+    <RightClickMenu :visible="contextMenuVisible" :position="contextMenuPosition" :item="selectedItem"
+      :fullPath="selectedItemFullPath" @menuOptionSelected="handleMenuOption" />
   </div>
 </template>
 
@@ -67,9 +54,8 @@ import { FolderIcon, FileIcon, ChevronRightIcon, FolderOpenIcon } from 'lucide-v
 import RightClickMenu from './RightClickMenu.vue'
 import SearchComponent from './SearchComponent.vue'
 import { fileQueue } from '../store/FileQueueStore'
-import { type } from '@tauri-apps/api/os'
 
-// Mock file system structure
+// Mock file system structure (unchanged)
 const fileSystem = {
   'root': [
     { name: 'Documents', type: 'folder', path: 'root/Documents' },
@@ -93,16 +79,18 @@ const fileSystem = {
 const currentPath = ref('root')
 const searchQuery = ref('')
 
+// Computed properties
 const currentItems = computed(() => {
   return fileSystem[currentPath.value] || []
 })
 
 const filteredItems = computed(() => {
   if (!searchQuery.value) return currentItems.value
-  return Object.values(fileSystem).flat().filter(item => 
+  return Object.values(fileSystem).flat().filter(item =>
     item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
+
 
 const breadcrumbs = computed(() => {
   const paths = currentPath.value.split('/')
@@ -125,7 +113,7 @@ const handleSearch = (query) => {
   searchQuery.value = query
 }
 
-// Context Menu Logic
+// Context Menu Logic (unchanged)
 const contextMenuVisible = ref(false)
 const contextMenuPosition = ref({ x: 0, y: 0 })
 const selectedItem = ref(null)
@@ -143,15 +131,15 @@ const hideContextMenu = () => {
 }
 
 const handleMenuOption = ({ option, item, fullPath }) => {
-  if(option=="AddQueue" || item.type=="file"){
-    fileQueue.enqueue(fullPath)
-  }
-  if(option=="PlayNext" || item.type=="file"){
-    fileQueue.enqueueFirst(fullPath)
+  if (option === "AddQueue" && item.type === "file") {
+    fileQueue.enqueue(fullPath); // Only add to the end for 'AddQueue'
+  } else if (option === "PlayNext" && item.type === "file") {
+    fileQueue.enqueueFirst(fullPath); // Only add to the front for 'PlayNext'
   }
   console.log(`Action: ${option} on item: ${item.name}, Full Path: ${fullPath}`)
   hideContextMenu()
 }
+
 </script>
 
 <style scoped>
