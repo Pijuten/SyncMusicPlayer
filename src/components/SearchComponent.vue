@@ -11,9 +11,9 @@
     </div>
   </template>
   
-  <script setup>
-  import { ref } from 'vue'
+  <script setup lang="ts">
+  import { ref, Ref } from 'vue'
   import { SearchIcon } from 'lucide-vue-next'
   
-  const searchQuery = ref('')
+  const searchQuery: Ref<string> = ref('');
   </script>

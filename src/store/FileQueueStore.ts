@@ -1,40 +1,48 @@
-import { ref, readonly, DeepReadonly, Ref } from 'vue'
+import { ref, readonly, Ref } from 'vue';
 
-interface FileQueueStore {
-  queue: Ref<readonly string[]>; 
-  enqueue: (filePath: string) => void
-  enqueueFirst: (filePath: string) => void
-  dequeue: () => string | undefined
-  peek: () => string | undefined
-  isEmpty: () => boolean
-  size: () => number
-  reorderQueue: (removedIndex: number, addedIndex: number) => void
+// Define the type for each queue item
+export interface FileItem {
+  name: string;
+  path: string;
 }
 
-const queue = ref<string[]>([])
+interface FileQueueStore {
+  queue: Ref<readonly FileItem[]>; 
+  enqueue: (fileName: string, filePath: string) => void;
+  enqueueFirst: (fileName: string, filePath: string) => void;
+  dequeue: () => FileItem | undefined;
+  peek: () => FileItem | undefined;
+  isEmpty: () => boolean;
+  size: () => number;
+  reorderQueue: (removedIndex: number, addedIndex: number) => void;
+  removeFromQueue: (index: number) => void; // Added the method to the interface
+}
+
+const queue = ref<FileItem[]>([]); // The queue now holds FileItem objects
 
 function createFileQueue(): FileQueueStore {
-  function enqueue(filePath: string): void {
-    queue.value.push(filePath)
+  function enqueue(fileName: string, filePath: string): void {
+    queue.value.push({ name: fileName, path: filePath });
   }
-  function enqueueFirst(filePath: string): void {
-    queue.value.unshift(filePath)
-  }
-
-  function dequeue(): string | undefined {
-    return queue.value.shift()
+  
+  function enqueueFirst(fileName: string, filePath: string): void {
+    queue.value.unshift({ name: fileName, path: filePath });
   }
 
-  function peek(): string | undefined {
-    return queue.value[0]
+  function dequeue(): FileItem | undefined {
+    return queue.value.shift();
+  }
+
+  function peek(): FileItem | undefined {
+    return queue.value[0];
   }
 
   function isEmpty(): boolean {
-    return queue.value.length === 0
+    return queue.value.length === 0;
   }
 
   function size(): number {
-    return queue.value.length
+    return queue.value.length;
   }
 
   function reorderQueue(removedIndex: number, addedIndex: number): void {
@@ -42,6 +50,10 @@ function createFileQueue(): FileQueueStore {
     const [movedItem] = currentQueue.splice(removedIndex, 1); // Remove the item
     currentQueue.splice(addedIndex, 0, movedItem); // Insert the item at the new position
     queue.value = currentQueue; // Re-assign to trigger reactivity
+  }
+
+  function removeFromQueue(index: number): void {
+    queue.value.splice(index, 1); // Remove item at the specific index
   }
 
   return {
@@ -52,8 +64,9 @@ function createFileQueue(): FileQueueStore {
     peek,
     isEmpty,
     size,
-    reorderQueue
-  }
+    reorderQueue,
+    removeFromQueue  // Add the method to the return object
+  };
 }
 
-export const fileQueue = createFileQueue()
+export const fileQueue = createFileQueue();

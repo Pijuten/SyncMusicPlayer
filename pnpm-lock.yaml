@@ -17,6 +17,9 @@ importers:
       vue:
         specifier: ^3.3.4
         version: 3.5.5(typescript@5.6.2)
+      vue-splitpane:
+        specifier: ^1.0.6
+        version: 1.0.6
       vue3-smooth-dnd:
         specifier: ^0.0.6
         version: 0.0.6(vue@3.5.5(typescript@5.6.2))
@@ -946,6 +949,9 @@ packages:
   vscode-uri@3.0.8:
     resolution: {integrity: sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw==}
 
+  vue-splitpane@1.0.6:
+    resolution: {integrity: sha512-6sneVSEeF1VsCD025HP93nRxwzYhv3rotCeYi2Ah1FmGxwtfqbCZEIzaHGberdGNCpMlEzGD/1OIE1kK5QukLA==}
+
   vue-tsc@2.1.6:
     resolution: {integrity: sha512-f98dyZp5FOukcYmbFpuSCJ4Z0vHSOSmxGttZJCsFeX0M4w/Rsq0s4uKXjcSRsZqsRgQa6z7SfuO+y0HVICE57Q==}
     hasBin: true
@@ -1763,6 +1769,8 @@ snapshots:
       fsevents: 2.3.3
 
   vscode-uri@3.0.8: {}
+
+  vue-splitpane@1.0.6: {}
 
   vue-tsc@2.1.6(typescript@5.6.2):
     dependencies:

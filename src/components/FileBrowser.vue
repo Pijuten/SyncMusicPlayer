@@ -1,5 +1,4 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-6 overflow-hidden" @click="hideContextMenu">
     <!-- File Browser (left column) -->
     <div class="w-3/4 h-[500px] bg-white rounded-lg shadow-xl overflow-auto ml-6 max-h-[80vh]">
       <div class="p-6">
@@ -40,107 +39,146 @@
       </div>
     </div>
     
-    <Playlist/>
 
     <!-- Custom Context Menu -->
     <RightClickMenu :visible="contextMenuVisible" :position="contextMenuPosition" :item="selectedItem"
       :fullPath="selectedItemFullPath" @menuOptionSelected="handleMenuOption" />
-  </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
-import { FolderIcon, FileIcon, ChevronRightIcon, FolderOpenIcon } from 'lucide-vue-next'
-import RightClickMenu from './RightClickMenu.vue'
-import SearchComponent from './SearchComponent.vue'
-import Playlist from './Playlist.vue'
-import { fileQueue } from '../store/FileQueueStore'
+<script lang="ts">
+import { ref, computed } from 'vue';
+import { FolderIcon, FileIcon, ChevronRightIcon, FolderOpenIcon } from 'lucide-vue-next';
+import RightClickMenu from './RightClickMenu.vue';
+import SearchComponent from './SearchComponent.vue';
+import Playlist from './Playlist.vue';
+import { fileQueue } from '../store/FileQueueStore';
 
-// Mock file system structure (unchanged)
-const fileSystem = {
-  'root': [
-    { name: 'Documents', type: 'folder', path: 'root/Documents' },
-    { name: 'Images', type: 'folder', path: 'root/Images' },
-    { name: 'readme.txt', type: 'file', path: 'root/readme.txt' },
-  ],
-  'root/Documents': [
-    { name: 'Project Proposal.docx', type: 'file', path: 'root/Documents/Project Proposal.docx' },
-    { name: 'Meeting Notes', type: 'folder', path: 'root/Documents/Meeting Notes' },
-  ],
-  'root/Documents/Meeting Notes': [
-    { name: 'January.txt', type: 'file', path: 'root/Documents/Meeting Notes/January.txt' },
-    { name: 'February.txt', type: 'file', path: 'root/Documents/Meeting Notes/February.txt' },
-  ],
-  'root/Images': [
-    { name: 'vacation.jpg', type: 'file', path: 'root/Images/vacation.jpg' },
-    { name: 'family.png', type: 'file', path: 'root/Images/family.png' },
-  ],
-}
+export default {
+  components: {
+    RightClickMenu,
+    SearchComponent,
+    Playlist,
+    FolderIcon,
+    FileIcon,
+    ChevronRightIcon,
+    FolderOpenIcon,
+  },
+  setup() {
+    interface FileItem {
+      name: string;
+      type: 'file' | 'folder';
+      path: string;
+    }
 
-const currentPath = ref('root')
-const searchQuery = ref('')
+    interface FileSystem {
+      [key: string]: FileItem[];
+    }
 
-// Computed properties
-const currentItems = computed(() => {
-  return fileSystem[currentPath.value] || []
-})
+    // Mock file system structure
+    const fileSystem: FileSystem = {
+      'root': [
+        { name: 'Documents', type: 'folder', path: 'root/Documents' },
+        { name: 'Images', type: 'folder', path: 'root/Images' },
+        { name: 'readme.txt', type: 'file', path: 'root/readme.txt' },
+      ],
+      'root/Documents': [
+        { name: 'Project Proposal.docx', type: 'file', path: 'root/Documents/Project Proposal.docx' },
+        { name: 'Meeting Notes', type: 'folder', path: 'root/Documents/Meeting Notes' },
+      ],
+      'root/Documents/Meeting Notes': [
+        { name: 'January.txt', type: 'file', path: 'root/Documents/Meeting Notes/January.txt' },
+        { name: 'February.txt', type: 'file', path: 'root/Documents/Meeting Notes/February.txt' },
+      ],
+      'root/Images': [
+        { name: 'vacation.jpg', type: 'file', path: 'root/Images/vacation.jpg' },
+        { name: 'family.png', type: 'file', path: 'root/Images/family.png' },
+      ],
+    };
 
-const filteredItems = computed(() => {
-  if (!searchQuery.value) return currentItems.value
-  return Object.values(fileSystem).flat().filter(item =>
-    item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
+    const currentPath = ref('root');
+    const searchQuery = ref('');
 
+    const currentItems = computed(() => {
+      return fileSystem[currentPath.value] || [];
+    });
 
-const breadcrumbs = computed(() => {
-  const paths = currentPath.value.split('/')
-  return paths.map((name, index) => ({
-    name: index === 0 ? 'Home' : name,
-    path: paths.slice(0, index + 1).join('/')
-  }))
-})
+    const filteredItems = computed(() => {
+      if (!searchQuery.value) return currentItems.value;
+      return Object.values(fileSystem).flat().filter((item: FileItem) =>
+        item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
+    });
 
-const navigateTo = (path) => {
-  if (fileSystem[path]) {
-    currentPath.value = path
-  } else {
-    currentPath.value = path.substring(0, path.lastIndexOf('/'))
-  }
-  searchQuery.value = '' // Clear search query when navigating
-}
+    const breadcrumbs = computed(() => {
+      const paths = currentPath.value.split('/');
+      return paths.map((name, index) => ({
+        name: index === 0 ? 'Home' : name,
+        path: paths.slice(0, index + 1).join('/')
+      }));
+    });
 
-const handleSearch = (query) => {
-  searchQuery.value = query
-}
+    const navigateTo = (path: string) => {
+      if (fileSystem[path]) {
+        currentPath.value = path;
+      } else {
+        currentPath.value = path.substring(0, path.lastIndexOf('/'));
+      }
+      searchQuery.value = ''; // Clear search query when navigating
+    };
 
-// Context Menu Logic (unchanged)
-const contextMenuVisible = ref(false)
-const contextMenuPosition = ref({ x: 0, y: 0 })
-const selectedItem = ref(null)
-const selectedItemFullPath = ref('')
+    const handleSearch = (query: string) => {
+      searchQuery.value = query;
+    };
 
-const showContextMenu = (event, item) => {
-  contextMenuPosition.value = { x: event.pageX, y: event.pageY }
-  selectedItem.value = item
-  selectedItemFullPath.value = item.path
-  contextMenuVisible.value = true
-}
+    const contextMenuVisible = ref(false);
+    const contextMenuPosition = ref({ x: 0, y: 0 });
+    const selectedItem = ref<FileItem | null>(null);
+    const selectedItemFullPath = ref('');
 
-const hideContextMenu = () => {
-  contextMenuVisible.value = false
-}
+    const showContextMenu = (event: MouseEvent, item: FileItem) => {
+      contextMenuPosition.value = { x: event.pageX, y: event.pageY };
+      selectedItem.value = item;
+      selectedItemFullPath.value = item.path;
+      contextMenuVisible.value = true;
+    };
 
-const handleMenuOption = ({ option, item, fullPath }) => {
-  if (option === "AddQueue" && item.type === "file") {
-    fileQueue.enqueue(fullPath); // Only add to the end for 'AddQueue'
-  } else if (option === "PlayNext" && item.type === "file") {
-    fileQueue.enqueueFirst(fullPath); // Only add to the front for 'PlayNext'
-  }
-  console.log(`Action: ${option} on item: ${item.name}, Full Path: ${fullPath}`)
-  hideContextMenu()
-}
+    const hideContextMenu = () => {
+      contextMenuVisible.value = false;
+    };
 
+    interface MenuOption {
+      option: "AddQueue" | "PlayNext";
+      item: FileItem;
+      fullPath: string;
+    }
+
+    const handleMenuOption = ({ option, item, fullPath }: MenuOption) => {
+      if (option === "AddQueue" && item.type === "file") {
+        fileQueue.enqueue(fullPath, ""); // Only add to the end for 'AddQueue'
+      } else if (option === "PlayNext" && item.type === "file") {
+        fileQueue.enqueueFirst(fullPath, ""); // Only add to the front for 'PlayNext'
+      }
+      hideContextMenu();
+    };
+
+    return {
+      currentPath,
+      searchQuery,
+      currentItems,
+      filteredItems,
+      breadcrumbs,
+      navigateTo,
+      handleSearch,
+      contextMenuVisible,
+      contextMenuPosition,
+      selectedItem,
+      selectedItemFullPath,
+      showContextMenu,
+      hideContextMenu,
+      handleMenuOption,
+    };
+  },
+};
 </script>
 
 <style scoped>

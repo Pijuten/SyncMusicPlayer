@@ -13,6 +13,7 @@
     "@tauri-apps/api": "^1",
     "lucide-vue-next": "^0.441.0",
     "vue": "^3.3.4",
+    "vue-splitpane": "^1.0.6",
     "vue3-smooth-dnd": "^0.0.6"
   },
   "devDependencies": {
