@@ -53,6 +53,7 @@ import { ref, computed } from 'vue'
 import { FolderIcon, FileIcon, ChevronRightIcon, FolderOpenIcon } from 'lucide-vue-next'
 import RightClickMenu from './RightClickMenu.vue'
 import SearchComponent from './SearchComponent.vue'
+import Playlist from './Playlist.vue'
 import { fileQueue } from '../store/FileQueueStore'
 
 // Mock file system structure (unchanged)
